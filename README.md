@@ -7,11 +7,13 @@ make -j4
 ./counter-benchmark
 
 Sample results:
+```bash
 $ cat /proc/cpuinfo | grep 'model name'
 model name	: Intel(R) Core(TM) i7-6700HQ CPU @ 2.60GHz
 model name	: Intel(R) Core(TM) i7-6700HQ CPU @ 2.60GHz
 model name	: Intel(R) Core(TM) i7-6700HQ CPU @ 2.60GHz
 model name	: Intel(R) Core(TM) i7-6700HQ CPU @ 2.60GHz
+```
 
 ```
 Run on (4 X 3500 MHz CPU s)
