@@ -3,6 +3,7 @@ Benchmark for thread shared counters
 
 ```bash
 git clone --recursive git@github.com:kevgs/counter_benchmark.git
+cd counter_benchmark
 mkdir build
 cd build
 cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON -DBENCHMARK_ENABLE_GTEST_TESTS=OFF ..
