@@ -2,7 +2,7 @@
 Benchmark for thread shared counters
 
 ```bash
-git clone --recursive git@github.com:kevgs/counter_benchmark.git
+git clone --recursive https://github.com/kevgs/counter_benchmark.git
 cd counter_benchmark
 mkdir build
 cd build
