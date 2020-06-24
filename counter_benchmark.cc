@@ -5,6 +5,9 @@
 
 #include <atomic>
 #include <thread>
+#if defined(_ARCH_PWR8)
+#include <sys/platform/ppc.h>
+#endif
 
 std::atomic<uint64_t> g_simple_atomic;
 static void BM_SimpleAtomic(benchmark::State &state) {
@@ -56,13 +59,20 @@ BENCHMARK(BM_TlsCounter)
     ->Threads(32)
     ->Threads(64)
     ->Threads(128)
-    ->Threads(256);
+    ->Threads(256)
+    ->Threads(512)
+    ->Threads(1024)
+    ->Threads(2048);
 
 void pause() noexcept {
 #if defined(_MSC_VER) && (defined(_M_AMD64) || defined(_M_IX86))
   _mm_pause();
 #elif defined(__GNUC__) && (defined(__i386__) || defined(__x86_64__))
   __asm__ __volatile__("pause;");
+#elif defined(_ARCH_PWR8)
+  __ppc_set_ppr_low();
+  __ppc_get_timebase();
+  __ppc_set_ppr_med();
 #endif
 }
 
