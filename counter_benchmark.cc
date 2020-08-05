@@ -9,7 +9,11 @@
 #include <sys/platform/ppc.h>
 #endif
 
-std::atomic<uint64_t> g_simple_atomic;
+namespace {
+
+using Integer = uint64_t;
+
+std::atomic<Integer> g_simple_atomic;
 static void BM_SimpleAtomic(benchmark::State &state) {
   for (auto _ : state) {
     g_simple_atomic.fetch_add(1, std::memory_order_relaxed);
@@ -26,7 +30,7 @@ BENCHMARK(BM_SimpleAtomic)
     ->Threads(128)
     ->Threads(256);
 
-ib_counter_t<uint64_t> g_sharded_atomic;
+ib_counter_t<Integer> g_sharded_atomic;
 static void BM_ShardedAtomic(benchmark::State &state) {
   auto idx = std::hash<std::thread::id>()(std::this_thread::get_id());
   for (auto _ : state) {
@@ -44,13 +48,33 @@ BENCHMARK(BM_ShardedAtomic)
     ->Threads(128)
     ->Threads(256);
 
-tls_distributed_counter<uint64_t, 0> g_tls_counter;
+tls_distributed_counter<Integer, 0> g_tls_counter;
 static void BM_TlsCounter(benchmark::State &state) {
   for (auto _ : state) {
     g_tls_counter++;
   }
 }
 BENCHMARK(BM_TlsCounter)
+    ->Threads(1)
+    ->Threads(2)
+    ->Threads(4)
+    ->Threads(8)
+    ->Threads(16)
+    ->Threads(32)
+    ->Threads(64)
+    ->Threads(128)
+    ->Threads(256)
+    ->Threads(512)
+    ->Threads(1024)
+    ->Threads(2048);
+
+singleton_counter_array<Integer, 32> g_counter_array;
+static void BM_SingletonCounterArray(benchmark::State &state) {
+  for (auto _ : state) {
+    g_counter_array[20]++;
+  }
+}
+BENCHMARK(BM_SingletonCounterArray)
     ->Threads(1)
     ->Threads(2)
     ->Threads(4)
@@ -166,7 +190,6 @@ private:
 size_t g_counter;
 shared_spin_mutex g_lock;
 
-
 static void BM_SharedLock1(benchmark::State &state) {
   size_t tmp;
 
@@ -174,7 +197,6 @@ static void BM_SharedLock1(benchmark::State &state) {
     g_lock.lock();
     g_counter++;
     g_lock.unlock();
-
 
     for (int i = 0; i < 3; i++) {
       if (g_lock.try_lock_shared()) {
@@ -226,5 +248,6 @@ BENCHMARK(BM_SharedLock2)
     ->Threads(128)
     ->Threads(256);
 
+} // namespace
 
 BENCHMARK_MAIN();
