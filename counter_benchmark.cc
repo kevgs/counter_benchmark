@@ -90,4 +90,99 @@ BENCHMARK(BM_SingletonCounterArray)
 
 } // namespace
 
+ib_counter_t<Integer> g_sharded_atomic_read;
+static void BM_ShardedAtomicRead(benchmark::State &state) {
+  auto idx = std::hash<std::thread::id>()(std::this_thread::get_id());
+  for (auto _ : state) {
+    auto res = static_cast<Integer>(g_sharded_atomic_read);
+    benchmark::DoNotOptimize(res);
+  }
+}
+BENCHMARK(BM_ShardedAtomicRead)
+    ->Threads(1)
+    ->Threads(2)
+    ->Threads(4)
+    ->Threads(8)
+    ->Threads(16)
+    ->Threads(32)
+    ->Threads(64)
+    ->Threads(128)
+    ->Threads(256)
+    ->Threads(512)
+    ->Threads(1024)
+    ->Threads(2048);
+
+singleton_counter_array<Integer, 1> g_counter_array_read;
+static void BM_SingletonCounterArrayRead(benchmark::State &state) {
+  g_counter_array_read[0]++;
+  for (auto _ : state) {
+    auto res = g_counter_array_read.load(0);
+    benchmark::DoNotOptimize(res);
+  }
+}
+BENCHMARK(BM_SingletonCounterArrayRead)
+    ->Threads(1)
+    ->Threads(2)
+    ->Threads(4)
+    ->Threads(8)
+    ->Threads(16)
+    ->Threads(32)
+    ->Threads(64)
+    ->Threads(128)
+    ->Threads(256)
+    ->Threads(512)
+    ->Threads(1024)
+    ->Threads(2048);
+
+
+ib_counter_t<Integer> g_sharded_atomic_reads[5];
+static void BM_ShardedAtomicRead5(benchmark::State &state) {
+  auto idx = std::hash<std::thread::id>()(std::this_thread::get_id());
+  for (auto _ : state) {
+    for (auto &counter : g_sharded_atomic_reads) {
+      auto res = static_cast<Integer>(counter);
+      benchmark::DoNotOptimize(res);
+    }
+  }
+}
+BENCHMARK(BM_ShardedAtomicRead5)
+    ->Threads(1)
+    ->Threads(2)
+    ->Threads(4)
+    ->Threads(8)
+    ->Threads(16)
+    ->Threads(32)
+    ->Threads(64)
+    ->Threads(128)
+    ->Threads(256)
+    ->Threads(512)
+    ->Threads(1024)
+    ->Threads(2048);
+
+singleton_counter_array<Integer, 5> g_counter_array_read5;
+static void BM_SingletonCounterArrayRead5(benchmark::State &state) {
+  for (size_t i = 0; i < 5; i++)
+    g_counter_array_read[i]++;
+
+  for (auto _ : state) {
+    for (size_t i = 0; i < 5; i++) {
+      auto res = g_counter_array_read.load(i);
+      benchmark::DoNotOptimize(res);
+    }
+  }
+}
+BENCHMARK(BM_SingletonCounterArrayRead5)
+    ->Threads(1)
+    ->Threads(2)
+    ->Threads(4)
+    ->Threads(8)
+    ->Threads(16)
+    ->Threads(32)
+    ->Threads(64)
+    ->Threads(128)
+    ->Threads(256)
+    ->Threads(512)
+    ->Threads(1024)
+    ->Threads(2048);
+
 BENCHMARK_MAIN();

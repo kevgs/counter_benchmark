@@ -4,7 +4,7 @@
 static const size_t CACHE_LINE_SIZE = 64;
 
 /** Default number of slots to use in ib_counter_t */
-#define IB_N_SLOTS 64
+#define IB_N_SLOTS 128
 
 template <typename Type, int N = IB_N_SLOTS> struct ib_counter_t {
   /** Increment the counter by 1. */
