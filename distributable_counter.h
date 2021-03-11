@@ -73,6 +73,7 @@ public:
 
   size_type size() const noexcept { return counters_.size(); }
   Integral load(size_type idx);
+  std::array<Integral, Size> load_all();
   Integral exchange(size_type idx, Integral to);
 
 private:
@@ -144,6 +145,29 @@ Integral distributable_counter_array<Integral, Size>::load(size_type idx) {
 }
 
 template <typename Integral, size_t Size>
+std::array<Integral, Size>
+distributable_counter_array<Integral, Size>::load_all() {
+  std::array<Integral, Size> result;
+  result.fill(0);
+
+  {
+    mutex_.lock_shared();
+    for (const auto &broker : brokers_) {
+      for (size_t i = 0; i < broker.counters_.size(); i++) {
+        result[i] += broker.counters_[i].load(std::memory_order_relaxed);
+      }
+    }
+    mutex_.unlock_shared();
+  }
+
+  for (size_t i = 0; i < Size; i++) {
+    counters_[i].load(std::memory_order_relaxed);
+  }
+
+  return result;
+}
+
+template <typename Integral, size_t Size>
 Integral distributable_counter_array<Integral, Size>::exchange(size_type idx,
                                                                Integral to) {
   assert(idx < size());
@@ -172,6 +196,7 @@ public:
   }
 
   Integral load(size_t idx) { return global_.load(idx); }
+  auto load_all() { return global_.load_all(); }
   Integral exchange(size_t idx, Integral to) {
     return global_.exchange(idx, to);
   }
