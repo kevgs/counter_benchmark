@@ -3,7 +3,7 @@
 #include <cassert>
 
 #include <atomic>
-#include <mutex>
+#include <shared_mutex>
 
 #include "ilist.h"
 
@@ -78,7 +78,7 @@ public:
 private:
   std::array<std::atomic<Integral>, Size> counters_;
   ilist<counter_broker_array<Integral, Size>> brokers_; // guarded by mutex_
-  std::mutex mutex_;
+  std::shared_mutex mutex_;
 
   friend counter_broker_array<Integral, Size>;
 };
@@ -98,8 +98,9 @@ public:
     for (auto &counter : counters_)
       counter.store(0, std::memory_order_relaxed);
 
-    std::lock_guard<std::mutex> _(array.mutex_);
+    array.mutex_.lock();
     array.brokers_.push_back(*this);
+    array.mutex_.unlock();
   }
 
   ~counter_broker_array() noexcept {
@@ -109,8 +110,9 @@ public:
     for (size_type i = 0; i < size(); i++)
       base_[i] += counters_[i].exchange(0, std::memory_order_relaxed);
 
-    std::lock_guard<std::mutex> _(base_.mutex_);
+    base_.mutex_.lock();
     base_.brokers_.remove(*this);
+    base_.mutex_.unlock();
   }
 
   detail::weak_bumper<Integral> operator[](size_type idx) noexcept {
@@ -133,9 +135,10 @@ Integral distributable_counter_array<Integral, Size>::load(size_type idx) {
 
   Integral accumulator = 0;
   {
-    std::lock_guard<std::mutex> _(mutex_);
+    mutex_.lock_shared();
     for (const auto &broker : brokers_)
       accumulator += broker.counters_[idx].load(std::memory_order_relaxed);
+    mutex_.unlock_shared();
   }
   return accumulator + counters_[idx].load(std::memory_order_relaxed);
 }
@@ -147,10 +150,11 @@ Integral distributable_counter_array<Integral, Size>::exchange(size_type idx,
 
   Integral accumulator = 0;
   {
-    std::lock_guard<std::mutex> _(mutex_);
+    mutex_.lock_shared();
     for (const auto &broker : brokers_)
       accumulator +=
           broker.counters_[idx].exchange(0, std::memory_order_relaxed);
+    mutex_.unlock_shared();
   }
 
   return accumulator + counters_[idx].exchange(to, std::memory_order_relaxed);

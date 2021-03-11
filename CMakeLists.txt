@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.0)
 
 project (counter CXX)
 
+set(CMAKE_CXX_STANDARD 17)
+
 add_library(counter INTERFACE)
 target_include_directories(counter INTERFACE .)
 
