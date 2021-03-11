@@ -143,11 +143,11 @@ BENCHMARK(BM_ShardedAtomicRead5)
 singleton_counter_array<Integer, 5> g_counter_array_read5;
 static void BM_SingletonCounterArrayRead5(benchmark::State &state) {
   for (size_t i = 0; i < 5; i++)
-    g_counter_array_read[i]++;
+    g_counter_array_read5[i]++;
 
   for (auto _ : state) {
     for (size_t i = 0; i < 5; i++) {
-      auto res = g_counter_array_read.load(i);
+      auto res = g_counter_array_read5.load(i);
       benchmark::DoNotOptimize(res);
     }
   }
