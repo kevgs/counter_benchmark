@@ -48,25 +48,6 @@ BENCHMARK(BM_ShardedAtomic)
     ->Threads(128)
     ->Threads(256);
 
-tls_distributed_counter<Integer, 0> g_tls_counter;
-static void BM_TlsCounter(benchmark::State &state) {
-  for (auto _ : state) {
-    g_tls_counter++;
-  }
-}
-BENCHMARK(BM_TlsCounter)
-    ->Threads(1)
-    ->Threads(2)
-    ->Threads(4)
-    ->Threads(8)
-    ->Threads(16)
-    ->Threads(32)
-    ->Threads(64)
-    ->Threads(128)
-    ->Threads(256)
-    ->Threads(512)
-    ->Threads(1024)
-    ->Threads(2048);
 
 singleton_counter_array<Integer, 32> g_counter_array;
 static void BM_SingletonCounterArray(benchmark::State &state) {
